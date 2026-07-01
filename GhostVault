@@ -1,0 +1,46 @@
+# GhostVault
+
+GhostVault is a lightweight, secure command-line application that helps users encrypt, decrypt, and organize sensitive files using strong AES-256 encryption.
+
+## Features
+
+- AES-256 file encryption
+- Password-based key generation
+- Secure file decryption
+- Folder protection
+- Automatic integrity verification
+- Cross-platform support
+- Fast and lightweight
+
+## Installation
+
+```bash
+git clone https://github.com/yourusername/GhostVault.git
+cd GhostVault
+pip install -r requirements.txt
+```
+
+## Usage
+
+Encrypt a file:
+
+```bash
+python ghostvault.py encrypt secret.pdf
+```
+
+Decrypt a file:
+
+```bash
+python ghostvault.py decrypt secret.pdf.gv
+```
+
+## Technologies
+
+- Python 3.12
+- Cryptography
+- Argparse
+- Hashlib
+
+## License
+
+MIT License
