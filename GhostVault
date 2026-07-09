@@ -4,14 +4,6 @@ GhostVault is a lightweight, secure command-line application that helps users en
 
 ## Features
 
-- AES-256 file encryption
-- Password-based key generation
-- Secure file decryption
-- Folder protection
-- Automatic integrity verification
-- Cross-platform support
-- Fast and lightweight
-
 ## Installation
 
 ```bash
@@ -21,6 +13,14 @@ pip install -r requirements.txt
 ```
 
 ## Usage
+
+- AES-256 file encryption
+- Password-based key generation
+- Secure file decryption
+- Folder protection
+- Automatic integrity verification
+- Cross-platform support
+- Fast and lightweight
 
 Encrypt a file:
 
