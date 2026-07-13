@@ -35,7 +35,9 @@ python ghostvault.py decrypt secret.pdf.gv
 ```
 
 ## Technologies
-
+- AES-256 file encryption
+- Password-based key generation
+- Secure file decryption
 - Python 3.12
 - Cryptography
 - Argparse
