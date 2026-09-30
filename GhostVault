@@ -1,48 +1,261 @@
-# GhostVault
+# Veyro
 
-GhostVault is a lightweight, secure command-line application that helps users encrypt, decrypt, and organize sensitive files using strong AES-256 encryption.
+A lightweight, single-file environment configuration checker for developers.
+
+Veyro validates `.env` files, detects missing variables, identifies empty values, and helps prevent configuration mistakes before an application starts.
 
 ## Features
 
-## Installation
-
-```bash
-git clone https://github.com/yourusername/GhostVault.git
-cd GhostVault
-pip install -r requirements.txt
-```
+* Validate required environment variables
+* Detect missing variables
+* Detect empty values
+* Detect duplicate keys
+* Support `.env` files
+* Zero external dependencies
+* Works on Windows, Linux, and macOS
+* Everything is contained in one Python file
 
 ## Usage
 
-- AES-256 file encryption
-- Password-based key generation
-- Secure file decryption
-- Folder protection
-- Automatic integrity verification
-- Cross-platform support
-- Fast and lightweight
+Save the code below as:
 
-Encrypt a file:
-
-```bash
-python ghostvault.py encrypt secret.pdf
+```text
+veyro.py
 ```
 
-Decrypt a file:
+Then run:
 
 ```bash
-python ghostvault.py decrypt secret.pdf.gv
+python veyro.py
 ```
 
-## Technologies
-- AES-256 file encryption
-- Password-based key generation
-- Secure file decryption
-- Python 3.12
-- Cryptography
-- Argparse
-- Hashlib
+Or validate a specific file:
+
+```bash
+python veyro.py .env
+```
+
+## Code
+
+```python
+#!/usr/bin/env python3
+
+import os
+import sys
+from pathlib import Path
+
+
+APP_NAME = "Veyro"
+VERSION = "1.0.0"
+
+# Add the variables your application requires here.
+REQUIRED_VARIABLES = [
+    "DATABASE_URL",
+    "API_KEY",
+    "SECRET_KEY",
+]
+
+
+def parse_env(file_path):
+    variables = {}
+    duplicates = []
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            for line_number, raw_line in enumerate(file, 1):
+                line = raw_line.strip()
+
+                # Ignore empty lines and comments.
+                if not line or line.startswith("#"):
+                    continue
+
+                # Support optional "export KEY=value" syntax.
+                if line.startswith("export "):
+                    line = line[7:].strip()
+
+                if "=" not in line:
+                    print(
+                        f"[WARN] Line {line_number}: "
+                        f"Invalid format -> {raw_line.strip()}"
+                    )
+                    continue
+
+                key, value = line.split("=", 1)
+
+                key = key.strip()
+                value = value.strip()
+
+                if not key:
+                    print(f"[WARN] Line {line_number}: Empty variable name")
+                    continue
+
+                if key in variables:
+                    duplicates.append((key, line_number))
+
+                # Remove matching quotes.
+                if len(value) >= 2:
+                    if (
+                        value.startswith('"')
+                        and value.endswith('"')
+                    ) or (
+                        value.startswith("'")
+                        and value.endswith("'")
+                    ):
+                        value = value[1:-1]
+
+                variables[key] = value
+
+    except FileNotFoundError:
+        print(f"[ERROR] File not found: {file_path}")
+        sys.exit(1)
+
+    except PermissionError:
+        print(f"[ERROR] Permission denied: {file_path}")
+        sys.exit(1)
+
+    return variables, duplicates
+
+
+def validate(variables):
+    missing = []
+    empty = []
+
+    for key in REQUIRED_VARIABLES:
+        if key not in variables:
+            missing.append(key)
+        elif not variables[key]:
+            empty.append(key)
+
+    return missing, empty
+
+
+def print_header():
+    print()
+    print("=" * 50)
+    print(f"  {APP_NAME} v{VERSION}")
+    print("  Environment Configuration Checker")
+    print("=" * 50)
+    print()
+
+
+def main():
+    print_header()
+
+    file_path = (
+        Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else Path(".env")
+    )
+
+    print(f"Checking: {file_path}")
+    print()
+
+    variables, duplicates = parse_env(file_path)
+
+    missing, empty = validate(variables)
+
+    # Show duplicate keys.
+    if duplicates:
+        print("[DUPLICATES]")
+        for key, line in duplicates:
+            print(f"  - {key} (line {line})")
+        print()
+
+    # Show missing variables.
+    if missing:
+        print("[MISSING]")
+        for key in missing:
+            print(f"  - {key}")
+        print()
+
+    # Show empty variables.
+    if empty:
+        print("[EMPTY]")
+        for key in empty:
+            print(f"  - {key}")
+        print()
+
+    print("[SUMMARY]")
+    print(f"  Variables found : {len(variables)}")
+    print(f"  Missing         : {len(missing)}")
+    print(f"  Empty           : {len(empty)}")
+    print(f"  Duplicates      : {len(duplicates)}")
+    print()
+
+    if missing or empty or duplicates:
+        print("Result: FAILED")
+        print()
+        sys.exit(1)
+
+    print("Result: PASSED")
+    print("Environment configuration looks valid.")
+    print()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+## Example
+
+Given this `.env`:
+
+```env
+DATABASE_URL=postgresql://localhost/app
+API_KEY=my-api-key
+SECRET_KEY=my-secret
+```
+
+Run:
+
+```bash
+python veyro.py
+```
+
+Output:
+
+```text
+==================================================
+  Veyro v1.0.0
+  Environment Configuration Checker
+==================================================
+
+Checking: .env
+
+[SUMMARY]
+  Variables found : 3
+  Missing         : 0
+  Empty           : 0
+  Duplicates      : 0
+
+Result: PASSED
+Environment configuration looks valid.
+```
+
+If `API_KEY` is missing:
+
+```text
+[MISSING]
+  - API_KEY
+
+[SUMMARY]
+  Variables found : 2
+  Missing         : 1
+  Empty           : 0
+  Duplicates      : 0
+
+Result: FAILED
+```
+
+## Why Veyro?
+
+Configuration errors are often discovered only after an application starts.
+
+Veyro provides a simple pre-flight check that can be used locally or inside CI/CD pipelines.
 
 ## License
 
-MIT License
+MIT
+
+```
+```
